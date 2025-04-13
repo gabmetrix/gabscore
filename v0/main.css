@@ -1,0 +1,77 @@
+html,
+body,
+.container {
+	margin: 0px;
+	max-width: 100%;
+}
+
+.col-left-custom,
+.col-left-custom {
+	width: 100%;
+}
+.over-ball-style {
+	width: 2rem;
+	height: 2rem;
+}
+
+@media only screen and (orientation: landscape) {
+	/* For desktops: */
+	.col-left-custom {
+		width: 70%;
+		float: left;
+		padding: 15px;
+	}
+	.col-right-custom {
+		width: 30%;
+		height: 100vh;
+		float: left;
+		padding: 15px;
+	}
+	/* .over-ball-style {
+		width: 2em;
+		height: 2em;
+		font-size: 2em;
+	}
+	.runboard-row-1{
+		margin-bottom: 2em;
+	} */
+}
+
+.center {
+	margin: auto;
+	width: 100%;
+	border: 3px solid green;
+	padding: 10px;
+}
+
+.btn-custom {
+	display: inline-block;
+	width: 100%;
+}
+
+.btn-custom-lg {
+	height: 4.5em;
+}
+.btn-custom-sm {
+	height: 3em;
+}
+table {
+	font-family: arial, sans-serif;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+td,
+th {
+	border: 1px solid #dddddd;
+	text-align: left;
+	padding: 8px;
+}
+
+tr:nth-child(even) {
+	background-color: #dddddd;
+}
+
+.material-symbols-outlined {
+	font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 200, "opsz" 24;
+}
