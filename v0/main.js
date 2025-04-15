@@ -82,6 +82,7 @@ function play_ball(run, score = 1) {
 	}
 	if (score == 1) {
 		runs += run;
+		autoSwapBatsmanOnSingleOrTriple(run);
 	}
 	if (run == "W") {
 		// Show the wicket input section
@@ -124,6 +125,9 @@ function play_ball(run, score = 1) {
 		
 			// Update bowler display
 			document.getElementById("currentBowlerDisplay").textContent = `Current Bowler: ${currentBowler}`;
+
+			// Strike Rotation
+			swapStrikerNonStriker(); // Swap batsmen at over change
 		}
 	}
 	update_score();
@@ -406,6 +410,9 @@ function confirmWicket() {
 	
 	  // Update bowler display in UI
 	  document.getElementById("currentBowlerDisplay").textContent = `Current Bowler: ${currentBowler}`;
+	  document.getElementById("strikerNameDisplay").textContent = `Current Striker: ${strikerName}`;
+	  document.getElementById("nonStrikerNameDisplay").textContent = `Current NonStriker: ${nonStrikerName}`;
+
   }
   function updateTossOptions() {
     const t1 = document.getElementById("team1").value.trim();
@@ -434,4 +441,30 @@ function confirmWicket() {
   window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("team1").addEventListener("input", updateTossOptions);
     document.getElementById("team2").addEventListener("input", updateTossOptions);
-  });
+  })
+  
+
+  $(document).ready(function () {
+    // Add event listener for button click
+    $("#swapStrikerNonStriker").on("click", function () {
+        swapStrikerNonStriker();  // Calls the function to swap striker and non-striker
+    });
+})
+
+  function swapStrikerNonStriker() {
+    // Swap the striker and non-striker names
+    let temp = strikerName;
+    strikerName = nonStrikerName;
+    nonStrikerName = temp;
+
+    // Optionally, update the UI with the swapped names
+    document.getElementById("strikerNameDisplay").textContent = `Current Striker: ${strikerName}`;
+    document.getElementById("nonStrikerNameDisplay").textContent = `Current Non-Striker: ${nonStrikerName}`;
+}
+ 
+function autoSwapBatsmanOnSingleOrTriple(run) {
+	if (run === 1 || run === 3) {
+		swapStrikerNonStriker();
+	}
+}
+  ;

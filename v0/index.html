@@ -65,14 +65,14 @@
     <div class="col-left-custom">
       <h6 style="text-align:center;">
         <!-- <span style="vertical-align:0.7em; font-size: small;">Score: </span> -->
-        <span contentEditable="false" id="run" style="font-size:30vw; line-height: 80%;">0</span>
-        <span contentEditable="false" style="font-size:25vw; line-height: 80%;">/</span>
-        <span contentEditable="false" id="wickets" style="font-size:30vw; line-height: 80%;">0</span>
+        <span contentEditable="false" id="run" style="font-size:25vw; line-height: 80%;">0</span>
+        <span contentEditable="false" style="font-size:20vw; line-height: 80%;">/</span>
+        <span contentEditable="false" id="wickets" style="font-size:25vw; line-height: 80%; color: #ff0000;">0</span>
         <span id="over-ball" style="font-size: 10vw; line-height: 200%">0</span>
         <center><h6 style="color: red; display: none;" id="no-ball-warning">No ball: Tap the runs scored in no ball.</h6></center>
         <h5 class="text" style = "color: grey;"> Player Information</h5>
-        <h5 id="strikerDisplay" class="mt-4 text" style="color: rgb(247, 173, 0);">Striker: </h5>
-        <h5 id="nonStrikerDisplay" class="mt-4 text" style="color: rgb(247, 173, 0); ">Non-Striker: </h5>
+        <h5 id="strikerNameDisplay" class="mt-4 text" style="color: rgb(247, 173, 0);">Striker: </h5>
+        <h5 id="nonStrikerNameDisplay" class="mt-4 text" style="color: rgb(247, 173, 0); ">Non-Striker: </h5>
         <h5 id="currentBowlerDisplay" class="mt-4 text" style="color:  purple;">Current Bowler: </h5>
 
       </h6>
@@ -174,14 +174,22 @@
         
           <button class="btn btn-success" onclick="confirmWicket()">Confirm Wicket</button>
         </div>
-        <div class="col-5 my-auto zoom py-4 px-1 run-btn">
-          <button type="button" class="btn btn-info btn-custom btn-custom-sm" data-toggle="modal" data-target="#myModal"
-            id="scoreboard-btn">Scoreboard</button>
-        </div>
-        <div class="col-2 my-auto zoom py-4 px-1 run-btn"></div>
-        <div class="col-5 my-auto zoom py-4 px-1 run-btn">
-          <button type="button" class="btn btn-danger btn-custom btn-custom-sm" data-toggle="modal"
-            data-target="#myModal2">Undo</button>
+        <div class="row">
+          <div class="col-4 d-flex align-items-center justify-content-center py-2 px-1 run-btn">
+            <button id="swapStrikerNonStriker" class="btn btn-warning btn-sm w-100" style="line-height: 1.2; padding: 0.375rem 0.75rem;">
+              Swap Batsman
+            </button>
+          </div>
+        
+          <div class="col-4 my-auto zoom py-4 px-1 run-btn">
+            <button type="button" class="btn btn-info btn-custom btn-custom-sm" data-toggle="modal" data-target="#myModal"
+              id="scoreboard-btn">Scoreboard</button>
+          </div>
+        
+          <div class="col-4 my-auto zoom py-4 px-1 run-btn">
+            <button type="button" class="btn btn-danger btn-custom btn-custom-sm" data-toggle="modal"
+              data-target="#myModal2">Undo</button>
+          </div>
         </div>
       </div>
       <button type="button" class="btn btn-link btn-custom btn-custom-sm" data-toggle="modal" data-target="#TargetModal"
