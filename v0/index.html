@@ -26,12 +26,12 @@
     <div class="container-fluid px-3 py-2" id="match-setup-section">
       <div class="row g-2 align-items-end">
         <div class="col-sm-2">
-          <label class="form-label">Match ID</label>
-          <input id="matchId" type="text" class="form-control" placeholder="Match ID">
-        </div>
-        <div class="col-sm-2">
           <label class="form-label">Date</label>
           <input id="matchDate" type="date" class="form-control">
+        </div>
+        <div class="col-sm-1">
+          <label class="form-label">Max Overs</label>
+          <input id="maxOversInput" type="number" class="form-control" min="1" placeholder=20>
         </div>
         <div class="col-sm-2">
           <label class="form-label">Team 1</label>
@@ -48,34 +48,49 @@
           </select>
         </div>
         <div class="col-sm-2">
-          <label class="form-label">Toss Decision</label>
+          <label class="form-label">Elect</label>
           <select id="tossDecision" class="form-select">
             <option value="bat">Bat</option>
             <option value="bowl">Bowl</option>
           </select>
         </div>
-      </div>
-      <div class="row mt-3">
-        <div class="col-12 text-end">
+        <div class="col-sm-1 align-items-end">
           <button class="btn btn-primary" onclick="startInnings()">Start Match</button>
         </div>
       </div>
     </div>
     <!-- This is the scores on the topmost part of the screen -->
+    <div id="inningDisplay" style="font-size: 22px; color: rgb(19, 18, 18); font-weight: bold; margin-top: 20px;"></div>
     <div class="col-left-custom">
       <h6 style="text-align:center;">
         <!-- <span style="vertical-align:0.7em; font-size: small;">Score: </span> -->
-        <span contentEditable="false" id="run" style="font-size:25vw; line-height: 80%;">0</span>
-        <span contentEditable="false" style="font-size:20vw; line-height: 80%;">/</span>
-        <span contentEditable="false" id="wickets" style="font-size:25vw; line-height: 80%; color: #ff0000;">0</span>
-        <span id="over-ball" style="font-size: 10vw; line-height: 200%">0</span>
-        <center><h6 style="color: red; display: none;" id="no-ball-warning">No ball: Tap the runs scored in no ball.</h6></center>
-        <h5 class="text" style = "color: grey;"> Player Information</h5>
-        <h5 id="strikerNameDisplay" class="mt-4 text" style="color: rgb(247, 173, 0);">Striker: </h5>
-        <h5 id="nonStrikerNameDisplay" class="mt-4 text" style="color: rgb(247, 173, 0); ">Non-Striker: </h5>
-        <h5 id="currentBowlerDisplay" class="mt-4 text" style="color:  purple;">Current Bowler: </h5>
-
-      </h6>
+        <div id="battingTeam" class="card" style="text-align: center; font-weight: bold; font-size: 48px; color: #34495e; padding: 20px; background: linear-gradient(to right, #f39c12, #e74c3c); border-radius: 15px; margin-bottom: 20px; box-shadow: none;">
+          </div>
+        
+        <div class="card" style="padding: 30px; border-radius: 15px; margin-bottom: 20px; box-shadow: none;">
+          <div style="display: flex; justify-content: center; align-items: flex-end; gap: 15px;">
+            <span contentEditable="false" id="run" style="font-size: 13vw; line-height: 80%; color: #34495e; font-weight: bold; padding: 10px 20px; border-radius: 10px; box-shadow: none;">0</span>
+            <span contentEditable="false" style="font-size: 11vw; line-height: 100%; color: #34495e;  padding: 10px 20px; border-radius: 10px; box-shadow: none;">/</span>
+            <span contentEditable="false" id="wickets" style="font-size: 13vw; line-height: 80%; color: #34495e; font-weight: bold; padding: 10px 20px; border-radius: 10px; box-shadow: none;">0</span>
+            <span id="over-ball" style="font-size: 8vw; line-height: 80%; color: #34495e; font-weight: bold; padding: 10px 20px; border-radius: 10px; align-self: flex-end; box-shadow: none;">0</span>
+          </div>
+        </div>
+        
+        <div class="card" style="padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: none;">
+          <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 10px; text-align: center;">
+            <h5 id="strikerNameDisplay" style="color: rgb(247, 173, 0); font-size: 18px; font-weight: 600;">
+              <span style="color: #2c3e50;"></span>*
+            </h5>
+            <h5 id="nonStrikerNameDisplay" style="color: rgb(247, 173, 0); font-size: 18px; font-weight: 600;">
+               <span style="color: #2c3e50;"></span>
+            </h5>
+            <h5 id="currentBowlerDisplay" style="color: purple; font-size: 18px; font-weight: 600;">
+              Bowler: <span style="color: #2c3e50;"></span>
+            </h5>
+          </div>
+        </div>
+        
+        <center><h6 style="color: red; display: none;" id="no-ball-warning">No ball: Tap the runs scored in no ball.</h6></center>      </h6>
     </div>
     <!-- END: This is the scores on the topmost part of the screen -->
      
@@ -174,24 +189,25 @@
         
           <button class="btn btn-success" onclick="confirmWicket()">Confirm Wicket</button>
         </div>
-        <div class="row">
-          <div class="col-4 d-flex align-items-center justify-content-center py-2 px-1 run-btn">
-            <button id="swapStrikerNonStriker" class="btn btn-warning btn-sm w-100" style="line-height: 1.2; padding: 0.375rem 0.75rem;">
-              Swap Batsman
-            </button>
+          <!-- Row 1: Scoreboard & Undo -->
+          <div class="row">
+            <div class="col-6 my-auto zoom py-2 px-1 run-btn">
+              <button type="button" class="btn btn-info btn-custom btn-custom-sm w-100"
+                      data-toggle="modal" data-target="#myModal"
+                      id="scoreboard-btn">Scoreboard</button>
+            </div>
+            <div class="col-6 my-auto zoom py-2 px-1 run-btn">
+              <button type="button" class="btn btn-danger btn-custom btn-custom-sm w-100"
+                      data-toggle="modal" data-target="#myModal2">Undo</button>
+            </div>
           </div>
-        
-          <div class="col-4 my-auto zoom py-4 px-1 run-btn">
-            <button type="button" class="btn btn-info btn-custom btn-custom-sm" data-toggle="modal" data-target="#myModal"
-              id="scoreboard-btn">Scoreboard</button>
+          <!-- Row 2: Swap Batsman & Switch Innings -->
+          <div class="row mt-2">
+            <div class="col-6 d-flex align-items-center justify-content-center py-2 px-1 run-btn">
+              <button id="swapStrikerNonStriker" class="btn btn-warning btn-sm w-100"
+                      style="line-height: 1.2; padding: 0.375rem 0.75rem;">Swap Batsman</button>
+            </div>
           </div>
-        
-          <div class="col-4 my-auto zoom py-4 px-1 run-btn">
-            <button type="button" class="btn btn-danger btn-custom btn-custom-sm" data-toggle="modal"
-              data-target="#myModal2">Undo</button>
-          </div>
-        </div>
-      </div>
       <button type="button" class="btn btn-link btn-custom btn-custom-sm" data-toggle="modal" data-target="#TargetModal"
         id="targetModeButton">Target mode</button>
       <button type="button" class="btn btn-link btn-custom btn-custom-sm" data-toggle="modal" data-target="#shareModal"

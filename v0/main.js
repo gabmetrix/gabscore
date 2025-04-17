@@ -4,6 +4,7 @@ var over_no = 1; // Over number will start from 1
 var runs = 0;
 var edited = [];
 var isNoBall = false;
+var is_WideBall = false;
 var isTargetMode = false;
 var targetRuns = -1; // total runs scored by other team
 var targetOvers = -1; //total overs
@@ -11,6 +12,13 @@ var isShareMode = false;
 let currentBowler = ""; //added a variable to store current bowler
 let strikerName = "";  //added a variable to store striker
 let nonStrikerName = "";  //added a variable to store non-striker
+let totalWickets = 0;
+let maxOvers = 20
+let currentInnings = 1;
+let isInningsOver = false;
+let battingTeam ="";
+let bowlingTeam = "";
+let matchId = "";
 
 $(document).ready(function () {
 	$("#run_dot").on("click", function (event) {
@@ -27,6 +35,7 @@ $(document).ready(function () {
 	});
 	$("#run_wide").on("click", function (event) {
 		play_ball("+", 0);
+		wideBall(true);  
 	});
 	$("#run_no_ball").on("click", function (event) {
 		play_ball("NB", 0);
@@ -62,8 +71,48 @@ function shareModeStart() {
 	isShareMode = true;
 	startConnect();
 }
+function generateMatchId() {
+	const team1 = document.getElementById("team1").value.trim().replace(/\s+/g, '');
+	const team2 = document.getElementById("team2").value.trim().replace(/\s+/g, '');
+	const date = document.getElementById("matchDate").value;
 
+	if (!team1 || !team2 || !date) {
+		alert("Please enter both team names and select a match date.");
+		return;
+	}
+
+	matchId = `${date}_${team1}_v_${team2}`;
+	console.log("Generated matchId:", matchId);
+
+	// Optionally show it on screen:
+	//document.getElementById("matchIdDisplay").innerText = matchId;
+	return matchId;
+}
+
+function updateBattingTeamDisplay() {
+    const teamElement = document.getElementById("battingTeam");
+    if (teamElement) {
+        console.log("✅ Updating team display to:", battingTeam);
+        teamElement.textContent = `${battingTeam}`;
+    } else {
+        console.log("❌ Could not find element with id 'battingTeam'");
+    }
+}
+function setMaxOvers() {
+	const input = document.getElementById("maxOversInput").value;
+	maxOvers = parseInt(input, 10);
+
+	if (isNaN(maxOvers) || maxOvers <= 0) {
+		alert("Please enter a valid number of overs.");
+		maxOvers = 0;
+	} else {
+		console.log("Max Overs set to:", maxOvers);
+	}
+}
 function play_ball(run, score = 1) {
+	// End innings if conditions are met
+	if (isInningsOver) return;
+	if (checkEndOfInnings()) return;
 	if (run == "+") {
 		//Wide ball
 		runs++;
@@ -97,7 +146,10 @@ function play_ball(run, score = 1) {
 		  opt.text = name;
 		  outSelect.appendChild(opt);
 		});
-	  
+		
+		// Track wickets
+		totalWickets++;
+		checkEndOfInnings();
 		return; // wait for user to click 'Confirm Wicket'
 	  }
 	// console.log("over_no=", over_no, "| ball_no=", ball_no," |Runs=",runs);
@@ -261,6 +313,28 @@ function noBall(is_NoBall) {
 	}
 }
 
+function wideBall(is_WideBall) {
+    isWideBall = is_WideBall;
+    var run_wide = $("#run_wide");
+    if (is_WideBall) {
+        $("#wide-ball-warning").show();
+        $("#run_wide").prop("disabled", true);
+        $("#run_no_ball").prop("disabled", true);
+        $("#run_W").prop("disabled", true);
+
+        run_wide.css("backgroundColor", "#0D6EFD");
+        run_wide.css("color", "#ffffff");
+    } else {
+        $("#wide-ball-warning").hide();
+        $("#run_wide").prop("disabled", false);
+        $("#run_no_ball").prop("disabled", false);
+        $("#run_W").prop("disabled", false);
+
+        run_wide.css("backgroundColor", "#e5f3ff");
+        run_wide.css("color", "#0D6EFD");
+    }
+}
+
 function setTarget(isTargetModeOn = true) {
 	isTargetMode = isTargetModeOn;
 	if (!isTargetModeOn) {
@@ -372,7 +446,8 @@ function confirmWicket() {
 	  alert("Please enter new batsman's name.");
 	  return;
 	}
-  
+	scoreboard[over_no][ball_no] = "W";
+	update_runboard();
 	if (outPlayer === strikerName) {
 	  strikerName = newBatsman;
 	} else if (outPlayer === nonStrikerName) {
@@ -383,9 +458,12 @@ function confirmWicket() {
   
 	document.getElementById("wicketInputs").style.display = "none";
 	document.getElementById("newBatsmanInput").value = "";
+	update_score();
+	ball_no++;
   }
 
   function startInnings() {
+	generateMatchId();
     const team1 = document.getElementById("team1").value.trim();
     const team2 = document.getElementById("team2").value.trim();
     const tossWinner = document.getElementById("tossWinner").value;
@@ -396,8 +474,8 @@ function confirmWicket() {
       return;
     }
   
-    const battingTeam = tossWinner === team1 && tossDecision === "bat" ? team1 : team2;
-    const bowlingTeam = battingTeam === team1 ? team2 : team1;
+    battingTeam = tossWinner === team1 && tossDecision === "bat" ? team1 : team2;
+    bowlingTeam = battingTeam === team1 ? team2 : team1;
   
     alert(`${battingTeam} will bat first.`);
   
@@ -412,6 +490,7 @@ function confirmWicket() {
 	  document.getElementById("currentBowlerDisplay").textContent = `Current Bowler: ${currentBowler}`;
 	  document.getElementById("strikerNameDisplay").textContent = `Current Striker: ${strikerName}`;
 	  document.getElementById("nonStrikerNameDisplay").textContent = `Current NonStriker: ${nonStrikerName}`;
+	  updateBattingTeamDisplay();
 
   }
   function updateTossOptions() {
@@ -441,6 +520,8 @@ function confirmWicket() {
   window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("team1").addEventListener("input", updateTossOptions);
     document.getElementById("team2").addEventListener("input", updateTossOptions);
+	const today = new Date().toISOString().split('T')[0];
+	document.getElementById("matchDate").value = today;
   })
   
 
@@ -467,4 +548,70 @@ function autoSwapBatsmanOnSingleOrTriple(run) {
 		swapStrikerNonStriker();
 	}
 }
-  ;
+  
+
+
+// Innings tracker 
+function checkEndOfInnings() {
+	const ballsBowled = (over_no - 1) * 6 + (ball_no - 1);
+
+	// 1. All wickets lost
+	if (totalWickets >= 10) {
+		endInnings("All out");
+		return true;
+	}
+
+	// 2. Max overs bowled
+	if (over_no > maxOvers) {
+		endInnings("Overs completed");
+		return true;
+	}
+
+	// 3. Target reached in 2nd innings
+	if (currentInnings === 2 && runs > targetRuns) {
+		endInnings("Target chased");
+		return true;
+	}
+
+	return false;
+}
+
+
+function endInnings(reason) {
+	isInningsOver = true;
+
+	alert(`Innings over: ${reason}`);
+
+	if (currentInnings === 1) {
+		//Swap teams
+		let temp = battingTeam;
+		battingTeam = bowlingTeam;
+		bowlingTeam = temp;
+		updateBattingTeamDisplay();
+		// Start second innings
+		targetRuns = runs;
+		runs = 0;
+		over_no = 1;
+		ball_no = 1;
+		totalWickets = 0;
+		scoreboard = [[], [0]];
+		currentInnings = 2;
+		isInningsOver = false;
+
+		// Prompt for new striker, non-striker, and bowler
+		strikerName = prompt("Enter name of the Striker:");
+		nonStrikerName = prompt("Enter name of the Non-Striker:");
+		currentBowler = prompt("Enter name of the Bowler:");
+
+		alert(`Second Innings Started. ${battingTeam} is now batting.`);
+
+		updateBatsmanDisplay(); // update UI with new names
+		updateBowlerDisplay();
+		update_scoreboard();
+		update_score();
+		updateBattingTeamDisplay();   // Update team name display
+		document.getElementById("battingTeam").textContent = `${battingTeam}`;
+	} else {
+		alert("Match Over!");
+	}
+}
