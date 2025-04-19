@@ -4,7 +4,7 @@ var over_no = 1; // Over number will start from 1
 var runs = 0;
 var edited = [];
 var isNoBall = false;
-var is_WideBall = false;
+var isWideBall = false;
 var isTargetMode = false;
 var targetRuns = -1; // total runs scored by other team
 var targetOvers = -1; //total overs
@@ -51,6 +51,18 @@ $(document).ready(function () {
 	});
 	$("#scoreboard-btn").on("click", function (event) {
 		update_scoreboard();
+	});
+	$("#run_extras").on("click", function (event) {
+		showExtrasInputs();
+	});
+	
+	// Add event handlers for the extras form buttons
+	$("#confirmExtras").on("click", function() {
+		confirmExtras();
+	});
+	
+	$("#cancelExtras").on("click", function() {
+		hideExtrasInputs();
 	});
 	init();
 });
@@ -126,6 +138,23 @@ function play_ball(run, score = 1) {
 		//No ball
 		runs++;
 		scoreboard[over_no][0] += 1;
+		update_score();
+		return;
+	}
+	// Handle additional runs on a wide ball - ADD THIS CODE
+	if (isWideBall) {
+		// Add runs from the wide
+		runs += run == "D" ? 0 : run;
+		scoreboard[over_no][0] += run == "D" ? 0 : run;
+		
+		// Update the batsmen positions if odd number of runs
+		if (run === 1 || run === 3) {
+			swapStrikerNonStriker();
+		}
+		
+		// Reset wide ball state
+		wideBall(false);
+		
 		update_score();
 		return;
 	}
@@ -312,7 +341,6 @@ function noBall(is_NoBall) {
 		run_no_ball.css("color", "#0D6EFD");
 	}
 }
-
 function wideBall(is_WideBall) {
     isWideBall = is_WideBall;
     var run_wide = $("#run_wide");
@@ -334,7 +362,77 @@ function wideBall(is_WideBall) {
         run_wide.css("color", "#0D6EFD");
     }
 }
+function showExtrasInputs() {
+    // Hide wicket inputs if they're visible
+    $("#wicketInputs").hide();
+    
+    // Show extras inputs
+    $("#extrasInputs").show();
+}
 
+// Hides the extras input form
+function hideExtrasInputs() {
+    $("#extrasInputs").hide();
+    $("#extrasRunsInput").val(0); // Reset input value
+}
+// Process extras when confirmed
+function confirmExtras() {
+    const extrasType = $("#extrasTypeSelect").val();
+    const extrasRuns = parseInt($("#extrasRunsInput").val()) || 0;
+    
+    if (extrasRuns < 0 || extrasRuns > 6) {
+        alert("Please enter a valid number of runs (0-6)");
+        return;
+    }
+    
+    // Add runs to score
+    runs += extrasRuns + 1; // +1 for the extra itself
+    
+    // Add to scoreboard - extras are tracked in scoreboard[over_no][0]
+    scoreboard[over_no][0] += extrasRuns + 1;
+    
+    // Track the extra in the current ball slot (for byes and leg byes which count as legal deliveries)
+    if (extrasType === "byes" || extrasType === "leg_byes") {
+        // Record the extra type and runs in the current ball
+        scoreboard[over_no][ball_no] = extrasType.charAt(0).toUpperCase() + extrasRuns;
+        
+        // Update runboard
+        update_runboard();
+        
+        // Increment ball count
+        ball_no++;
+        
+        // Check if over is complete
+        if (ball_no >= 7) {
+            ball_no = 1;
+            over_no++;
+            scoreboard[over_no] = [];
+            scoreboard[over_no][0] = 0; // Wide bowls counter
+            
+            // Prompt for new bowler at start of each over
+            currentBowler = prompt(`Enter bowler for Over ${over_no}:`, "");
+            if (!currentBowler) currentBowler = "Unknown";
+            
+            // Update bowler display
+            document.getElementById("currentBowlerDisplay").textContent = `Current Bowler: ${currentBowler}`;
+            
+            // Strike Rotation
+            swapStrikerNonStriker(); // Swap batsmen at over change
+        }
+    }
+    
+    // If odd number of runs, swap batsmen positions
+    if (extrasRuns % 2 === 1) {
+        swapStrikerNonStriker();
+    }
+    
+    // Update score display
+    update_score();
+    update_scoreboard();
+    
+    // Hide the extras input form
+    hideExtrasInputs();
+}
 function setTarget(isTargetModeOn = true) {
 	isTargetMode = isTargetModeOn;
 	if (!isTargetModeOn) {

@@ -91,6 +91,8 @@
         </div>
         
         <center><h6 style="color: red; display: none;" id="no-ball-warning">No ball: Tap the runs scored in no ball.</h6></center>      </h6>
+        <center><h6 style="color: red; display: none;" id="wide-ball-warning">Wide ball: Tap the runs scored in no ball.</h6></center>      </h6>
+        <!--- <div id="wide-ball-warning" class="alert alert-warning" style="display: none;">Wide Ball</div>-->
     </div>
     <!-- END: This is the scores on the topmost part of the screen -->
      
@@ -139,17 +141,19 @@
         &nbsp;&nbsp;<button type="button" class="btn-close" onClick="setTarget(false)"></button>
       </div>
       <div class="row no-gutters">
-        <div class="col-4 my-auto zoom mb-2 px-1 run-btn">
+        <div class="col-3 my-auto zoom mb-2 px-1 run-btn">
           <button class="btn btn-outline-primary btn-lg btn-custom btn-custom-lg" id="run_dot">Dot</button>
         </div>
-        <div class="col-4 my-auto zoom mb-2 px-1 run-btn">
+        <div class="col-3 my-auto zoom mb-2 px-1 run-btn">
           <button class="btn btn-outline-primary btn-lg btn-custom btn-custom-lg" id="run_wide">Wide</button>
         </div>
-
-        <div class="col-4 my-auto zoom mb-2 px-1 run-btn">
+        <div class="col-3 my-auto zoom mb-2 px-1 run-btn">
+          <button class="btn btn-outline-primary btn-lg btn-custom btn-custom-lg" id="run_extras">Extras</button>
+        </div>
+        <div class="col-3 my-auto zoom mb-2 px-1 run-btn">
           <button class="btn btn-outline-primary btn-lg btn-custom btn-custom-lg" id="run_no_ball">No ball</button>
         </div>
-
+        
         <div class="col-4 my-auto zoom mb-2 px-1 run-btn">
           <button class="btn btn-outline-primary btn-lg btn-custom btn-custom-lg" id="run_1">1</button>
         </div>
@@ -159,6 +163,7 @@
         <div class="col-4 my-auto zoom mb-2 px-1 run-btn">
           <button class="btn btn-outline-primary btn-lg btn-custom btn-custom-lg" id="run_3">3</button>
         </div>
+        
         <div class="col-4 my-auto zoom pb-1 px-1 run-btn">
           <button class="btn btn-outline-primary btn-custom btn-custom-sm" id="run_4">4</button>
         </div>
@@ -168,27 +173,47 @@
         <div class="col-4 my-auto zoom pb-1 px-1 run-btn">
           <button class="btn btn-outline-primary btn-custom btn-custom-sm" id="run_W">Wicket</button>
         </div>
-        <div id="wicketInputs" class="mt-4" style="display: none;">
-          <h5>Wicket Details</h5>
-          <label for="wicketTypeSelect">Wicket Type:</label>
-          <select id="wicketTypeSelect" class="form-select mb-2">
-            <option value="Bowled">Bowled</option>
-            <option value="Caught">Caught</option>
-            <option value="LBW">LBW</option>
-            <option value="Run Out">Run Out</option>
-            <option value="Stumped">Stumped</option>
+      </div>
+      <div id="extrasInputs" class="mt-4" style="display: none;">
+        <div class="mb-3">
+          <label for="extrasTypeSelect" class="form-label">Extras Type:</label>
+          <select id="extrasTypeSelect" class="form-select mb-2">
+            <option value="byes">Byes</option>
+            <option value="leg_byes">Leg Byes</option>
+            <option value="penalty">Penalty</option>
           </select>
-        
-          <label for="outPlayerSelect">Player Out:</label>
-          <select id="outPlayerSelect" class="form-select mb-2">
-            <!-- Options will be dynamically filled -->
-          </select>
-        
-          <label for="newBatsmanInput">New Batsman:</label>
-          <input id="newBatsmanInput" type="text" class="form-control mb-2" placeholder="Enter new batsman name">
-        
-          <button class="btn btn-success" onclick="confirmWicket()">Confirm Wicket</button>
         </div>
+        <div class="mb-3">
+          <div class="mb-3">
+            <label class="form-label">Additional Runs:</label>
+            <div class="row g-2 mt-1">
+                <div class="col-2">
+                    <button class="btn btn-outline-primary w-100 extras-run-btn" data-runs="0">0</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-outline-primary w-100 extras-run-btn" data-runs="1">1</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-outline-primary w-100 extras-run-btn" data-runs="2">2</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-outline-primary w-100 extras-run-btn" data-runs="3">3</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-outline-primary w-100 extras-run-btn" data-runs="4">4</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-outline-primary w-100 extras-run-btn" data-runs="5">5</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-outline-primary w-100 extras-run-btn" data-runs="6">6</button>
+                </div>
+            </div>
+        </div>
+        </div>
+        <button class="btn btn-success" id="confirmExtras">Confirm Extras</button>
+        <button class="btn btn-secondary ms-2" id="cancelExtras">Cancel</button>
+      </div>
           <!-- Row 1: Scoreboard & Undo -->
           <div class="row">
             <div class="col-4 my-auto zoom py-2 px-1 run-btn">
