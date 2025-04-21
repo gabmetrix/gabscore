@@ -14,6 +14,33 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
   <link rel="stylesheet" href="main.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // === PASTE YOUR FIREBASE CONFIGURATION HERE ===
+    const firebaseConfig = {
+        apiKey: "AIzaSyBf7F6SIfe14Qui9jjD6zTLhWY4TFwaF6s", // Use your actual key
+        authDomain: "gab-score.firebaseapp.com",
+        databaseURL: "https://gab-score-default-rtdb.firebaseio.com",
+        projectId: "gab-score",
+        storageBucket: "gab-score.appspot.com", // Corrected: remove firebasestorage part
+        messagingSenderId: "570864593493",
+        appId: "1:570864593493:web:64e96488927f30177202dc",
+        measurementId: "G-9GWPC97YDD" // Optional, for Analytics
+    };
+
+    // Initialize Firebase
+    try {
+        firebase.initializeApp(firebaseConfig);
+        console.log("Firebase Initialized Successfully.");
+        // You might still need the global 'database' variable if savedata.js uses it directly
+        // const database = firebase.database();
+    } catch (error) {
+        console.error("Firebase Initialization Failed:", error);
+        // Display an error to the user or disable Firebase features
+        alert("Error connecting to the database. Score saving disabled.");
+    }
+  </script>
 
   <!-- Copy icon -->
   <link rel="stylesheet"
@@ -415,6 +442,7 @@
     crossorigin="anonymous"></script>
   <script src="main_mqtt.js"></script>
   <script src="main.js"></script>
+  <script src="savedata.js"></script>
 </body>
 
 </html>

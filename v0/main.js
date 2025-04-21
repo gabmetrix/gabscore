@@ -19,6 +19,8 @@ let isInningsOver = false;
 let battingTeam ="";
 let bowlingTeam = "";
 let matchId = "";
+let runs_off_the_bat = 0;
+
 
 $(document).ready(function () {
 	$("#run_dot").on("click", function (event) {
@@ -101,6 +103,10 @@ function generateMatchId() {
 	return matchId;
 }
 
+function updateBatsmanDisplay() {
+	document.getElementById("strikerNameDisplay").textContent = `Current Striker: ${strikerName}`;
+	document.getElementById("nonStrikerNameDisplay").textContent = `Current Non-Striker: ${nonStrikerName}`;
+}
 function updateBattingTeamDisplay() {
     const teamElement = document.getElementById("battingTeam");
     if (teamElement) {
@@ -122,6 +128,7 @@ function setMaxOvers() {
 	}
 }
 function play_ball(run, score = 1) {
+	runs_off_the_bat = 0; // Reset runs_off_the_bat for each potential delivery attempt
 	// End innings if conditions are met
 	if (isInningsOver) return;
 	if (checkEndOfInnings()) return;
@@ -129,6 +136,7 @@ function play_ball(run, score = 1) {
 		//Wide ball
 		runs++;
 		scoreboard[over_no][0] += 1;
+		console.log(`Ball ${over_no}.${ball_no}: Delivery Outcome=Wide, Runs off bat = ${runs_off_the_bat}`);
 		update_score();
 		return;
 	}
@@ -138,6 +146,8 @@ function play_ball(run, score = 1) {
 		//No ball
 		runs++;
 		scoreboard[over_no][0] += 1;
+		// runs_off_the_bat remains 0 for the no-ball signal itself
+        console.log(`Ball ${over_no}.${ball_no}: Delivery Outcome=No Ball Signal, Runs off bat = ${runs_off_the_bat}`);
 		update_score();
 		return;
 	}
@@ -154,17 +164,20 @@ function play_ball(run, score = 1) {
 		
 		// Reset wide ball state
 		wideBall(false);
-		
+		// runs_off_the_bat remains 0, these are runs *during* a wide, not *off the bat* from the delivery
+        console.log(`Ball ${over_no}.${ball_no}: Delivery Outcome=Runs during Wide (${run}), Runs off bat = ${runs_off_the_bat}`);
 		update_score();
 		return;
 	}
 	if (score == 1) {
 		runs += run;
+		runs_off_the_bat = (run === "D" ? 0 : run);
 		autoSwapBatsmanOnSingleOrTriple(run);
 	}
 	if (run == "W") {
-		// Show the wicket input section
-		document.getElementById("wicketInputs").style.display = "block";
+		// Show the wicket UI with batsman selection buttons
+		showWicketUI();
+
 	  
 		// Populate striker/non-striker options
 		const outSelect = document.getElementById("outPlayerSelect");
@@ -178,10 +191,14 @@ function play_ball(run, score = 1) {
 		
 		// Track wickets
 		totalWickets++;
+		// runs_off_the_bat remains 0 for the wicket event itself (unless it was a run-out during a run, more complex)
+        console.log(`Ball ${over_no}.${ball_no}: Delivery Outcome=Wicket, Runs off bat = ${runs_off_the_bat}`);
 		checkEndOfInnings();
 		return; // wait for user to click 'Confirm Wicket'
 	  }
 	// console.log("over_no=", over_no, "| ball_no=", ball_no," |Runs=",runs);
+    // Note: If it was a No Ball where runs were scored, isNoBall is still true here.
+    console.log(`Ball ${over_no}.${ball_no}: Delivery Outcome=${run}, Runs off bat = ${runs_off_the_bat}`);
 
 	if (isNoBall) {
 		scoreboard[over_no][0] += run == "D" ? 0 : run;
@@ -433,6 +450,123 @@ function confirmExtras() {
     // Hide the extras input form
     hideExtrasInputs();
 }
+// Global variable to track which player is out
+let playerOut = "";
+
+// Function to handle player selection
+function selectBatsmanOut(player) {
+  playerOut = player;
+  
+  // Show the new batsman input section
+  document.getElementById("newBatsmanSection").style.display = "block";
+  document.getElementById("newBatsmanInput").focus();
+  
+  // Update button styles to show selection
+  document.getElementById("strikerOutBtn").classList.remove("btn-danger");
+  document.getElementById("strikerOutBtn").classList.add("btn-outline-danger");
+  document.getElementById("nonStrikerOutBtn").classList.remove("btn-danger");
+  document.getElementById("nonStrikerOutBtn").classList.add("btn-outline-danger");
+  
+  if (player === "striker") {
+    document.getElementById("strikerOutBtn").classList.remove("btn-outline-danger");
+    document.getElementById("strikerOutBtn").classList.add("btn-danger");
+  } else {
+    document.getElementById("nonStrikerOutBtn").classList.remove("btn-outline-danger");
+    document.getElementById("nonStrikerOutBtn").classList.add("btn-danger");
+  }
+}
+
+// Function to show wicket UI when a wicket falls
+function showWicketUI() {
+  // Update button text with current batsmen names
+  document.getElementById("strikerOutBtn").textContent = strikerName;
+  document.getElementById("nonStrikerOutBtn").textContent = nonStrikerName;
+  
+  // Reset the player out selection
+  playerOut = "";
+  
+  // Reset button styles
+  document.getElementById("strikerOutBtn").classList.remove("btn-danger");
+  document.getElementById("strikerOutBtn").classList.add("btn-outline-danger");
+  document.getElementById("nonStrikerOutBtn").classList.remove("btn-danger");
+  document.getElementById("nonStrikerOutBtn").classList.add("btn-outline-danger");
+  
+  // Hide the new batsman section initially
+  document.getElementById("newBatsmanSection").style.display = "none";
+  
+  // Clear the new batsman input
+  document.getElementById("newBatsmanInput").value = "";
+  
+  // Show the wicket UI
+  document.getElementById("wicketInputs").style.display = "block";
+}
+
+// Function to confirm the wicket
+function confirmWicket() {
+  const wicketType = document.getElementById("wicketTypeSelect").value;
+  const newBatsman = document.getElementById("newBatsmanInput").value.trim();
+  
+  // Validate inputs
+  if (!playerOut) {
+    alert("Please select which batsman is out.");
+    return;
+  }
+  
+  if (!newBatsman) {
+    alert("Please enter the new batsman's name.");
+    return;
+  }
+  
+  // Get name of player who is out
+  let outPlayerName = "";
+  
+  // Replace the appropriate batsman
+  if (playerOut === "striker") {
+    outPlayerName = strikerName;
+    strikerName = newBatsman; // Replace striker with new batsman
+  } else {
+    outPlayerName = nonStrikerName;
+    nonStrikerName = newBatsman; // Replace non-striker with new batsman
+  }
+  
+  // Update the scoreboard
+  scoreboard[over_no][ball_no] = "W";
+  
+  // Update displays
+  update_runboard();
+  updateBatsmanDisplay();
+  
+  // Alert about the wicket
+  alert(`${outPlayerName} is out (${wicketType}). New batsman: ${newBatsman}`);
+  
+  // Hide the wicket inputs
+  document.getElementById("wicketInputs").style.display = "none";
+  
+  // Update score and advance ball
+  update_score();
+  ball_no++;
+  
+  // Check for end of over
+  if (ball_no >= 7) {
+    ball_no = 1;
+    over_no++;
+    scoreboard[over_no] = [];
+    scoreboard[over_no][0] = 0; // Wide bowls counter
+    
+    // Prompt for new bowler
+    currentBowler = prompt(`Enter bowler for Over ${over_no}:`, "");
+    if (!currentBowler) currentBowler = "Unknown";
+    
+    // Update bowler display
+    document.getElementById("currentBowlerDisplay").textContent = `Current Bowler: ${currentBowler}`;
+    
+    // Swap batsmen at over change
+    swapStrikerNonStriker();
+  }
+  
+  // Check if innings is over
+  checkEndOfInnings();
+}
 function setTarget(isTargetModeOn = true) {
 	isTargetMode = isTargetModeOn;
 	if (!isTargetModeOn) {
@@ -535,30 +669,6 @@ function sendInitVariables() {
 	);
 }
 
-function confirmWicket() {
-	const wicketType = document.getElementById("wicketTypeSelect").value;
-	const outPlayer = document.getElementById("outPlayerSelect").value;
-	const newBatsman = document.getElementById("newBatsmanInput").value.trim();
-  
-	if (!newBatsman) {
-	  alert("Please enter new batsman's name.");
-	  return;
-	}
-	scoreboard[over_no][ball_no] = "W";
-	update_runboard();
-	if (outPlayer === strikerName) {
-	  strikerName = newBatsman;
-	} else if (outPlayer === nonStrikerName) {
-	  nonStrikerName = newBatsman;
-	}
-  
-	alert(`${outPlayer} is out (${wicketType}). New batsman: ${newBatsman}`);
-  
-	document.getElementById("wicketInputs").style.display = "none";
-	document.getElementById("newBatsmanInput").value = "";
-	update_score();
-	ball_no++;
-  }
 
   function startInnings() {
 	generateMatchId();
