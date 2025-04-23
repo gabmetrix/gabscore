@@ -20,6 +20,7 @@ let nonStrikerName = "";
 let currentBowler = "";
 let playerOut = ""; // Tracks which batsman ('striker' or 'nonStriker') is selected in the Wicket UI
 let pendingWicketDeliveryKey = null; // Stores the Firebase key for update
+let inningsDeliveryCounter = 1;
 
 // Match and Mode Info
 let matchId = "";
@@ -291,6 +292,7 @@ function confirmExtras() {
 	// <<< --- MILAN LOOK HERE: REVISED FIREBASE CALL for EXTRAS --- >>>
 	if (isLegalDelivery && typeof logExtrasDelivery === "function") {
 		logExtrasDelivery(extrasType, extrasRuns); // Call new function
+        inningsDeliveryCounter++;
 	} else if (isLegalDelivery) { // Only warn if function missing but should have been called
 		console.warn("logExtrasDelivery function not found in savedata.js");
 	}
@@ -415,6 +417,12 @@ function confirmWicket() {
     updateBatsmanDisplay(); // Show new names or "N/A" state
 
     $("#wicketInputs").hide(); // Hide the modal/UI
+    // <<< CHANGE HERE (Issue 3 Debugging) >>>
+    console.log(`CONFIRM WICKET: Preparing to update Firebase.`);
+    console.log(`  -> Pending Key: ${pendingWicketDeliveryKey}`);
+    console.log(`  -> Wicket Type: ${wicketType}`);
+    console.log(`  -> Player Out: ${outPlayerName}`);
+    // <<< END OF DEBUG LOGGING --- >>>
 
 	// <<< --- MILAN LOOK HERE: ADD FIREBASE WICKET UPDATE CALL --- >>>
     console.log("Checking pendingWicketDeliveryKey before update:", pendingWicketDeliveryKey); // Debug log
@@ -500,7 +508,7 @@ function play_ball(run) {
         clickedRuns = 0;
         outcomeBaseDescription = "0";
         runs_off_the_bat = 0;
-    } else if ([1, 2, 3, 4, 6].includes(run)) {
+    } else if ([1, 2, 3, 4, 5, 6].includes(run)) {
         clickedRuns = run;
         outcomeBaseDescription = `${run}`;
         runs_off_the_bat = run; // Assign runs based on click
@@ -589,6 +597,7 @@ function play_ball(run) {
 			 pendingWicketDeliveryKey = deliveryKey;
 			 console.log("Stored pendingWicketDeliveryKey:", pendingWicketDeliveryKey); // Debug log
 		 }
+         inningsDeliveryCounter++;
 	 } else {
 		 console.warn("logDeliveryAttempt function not found in savedata.js");
 	 }
@@ -772,6 +781,7 @@ function endInnings(reason) {
         isWideBall = false;
         runs_off_the_bat = 0;
         edited = [];
+        inningsDeliveryCounter = 1;
         currentInnings = 2;
         isInningsOver = false; // Ready for next innings
 
@@ -905,6 +915,7 @@ function startInnings() {
     currentInnings = 1;
     runs_off_the_bat = 0;
     targetRuns = -1; // Reset target for new match
+    inningsDeliveryCounter = 1;
     targetOvers = -1;
     setTarget(false); // Ensure target mode display is off initially
 
@@ -938,6 +949,7 @@ $(document).ready(function () {
     $("#run_wide").on("click", () => play_ball("+")); // Signal for Wide
     $("#run_no_ball").on("click", () => play_ball("NB")); // Signal for No Ball
     $("#run_4").on("click", () => play_ball(4));
+    $("#run_5").on("click", () => play_ball(5));
     $("#run_6").on("click", () => play_ball(6));
     $("#run_W").on("click", () => play_ball("W"));
 

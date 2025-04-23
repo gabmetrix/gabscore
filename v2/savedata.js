@@ -67,8 +67,8 @@ function logDeliveryAttempt(outcome, runsScoredThisAction, wasWide, wasNoBall) {
         extrasRuns: 0, // Default, calculated below
         extrasType: null, // Default, calculated below
         isWicket: (outcome === 'W'),
-        wicketType: null,
-        playerDismissed: null
+        wicketType: "",
+        playerDismissed: ""
     };
 
     // --- Calculate specific fields based on outcome ---
@@ -100,75 +100,80 @@ function logDeliveryAttempt(outcome, runsScoredThisAction, wasWide, wasNoBall) {
         .catch((error) => { console.error(`Firebase: Error logging delivery (${currentOver}.${currentBall}):`, error); });
 
     return deliveryKey;
-} // --- End of logDeliveryAttempt ---
+}
 
 
 /**
- * Logs Byes or LegByes (which are legal deliveries).
+ * Logs Byes/LegByes (simplified flow). Assumes type is 'Bye'.
  * Gathers most data from global state.
  *
- * @param {string} type - 'byes' or 'leg_byes'.
  * @param {number} runsScored - Runs scored as byes/legbyes (0 to 6).
  */
-function logExtrasDelivery(type, runsScored) {
-     if (!db) {
-        console.error("Firebase DB not available. Cannot log extras delivery.");
-        return;
-    }
-    if (!matchId) {
-        console.warn("Cannot log extras delivery: matchId is not set.");
-        return;
-    }
+function logExtrasDelivery(runsScored) { // Only parameter is runsScored
+    console.log(`logExtrasDelivery called with runsScored: ${runsScored}`); // Log entry
 
-    // --- Gather data from global state ---
-    const currentMatchId = matchId;
-    const currentOver = over_no;
-    const currentBall = ball_no; // Ball number before it increments in main.js
-    const currentStriker = strikerName; // Before potential swap
-    const currentNonStriker = nonStrikerName; // Before potential swap
-    const currentBowlerName = currentBowler;
-    const currentBattingTeam = battingTeam;
-    const currentBowlingTeam = bowlingTeam;
-    const currentInningsSerial = inningsDeliveryCounter;    
-    const outcomeSymbol = `${type.charAt(0).toUpperCase()}${runsScored}`; // B0, LB4 etc.
+    if (!db) { console.error("Firebase DB not available..."); return; }
+    if (typeof matchId === 'undefined' || !matchId) { console.error("Cannot log extras: Global 'matchId' is not set..."); return; }
+    if (typeof over_no === 'undefined' || typeof ball_no === 'undefined') { console.error("Cannot log extras: Global 'over_no'/'ball_no' not set..."); return; }
+    // Add other necessary global checks
 
-    let deliveryData = {
-        matchId: currentMatchId,
-        deliveryInningsSerial: currentInningsSerial,
-        date: $("#matchDate").val(),
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        localTimestamp: new Date().toISOString(),
-        over: currentOver,
-        ball: currentBall, // Log the ball number for which this occurred
-        battingTeam: currentBattingTeam,
-        bowlingTeam: currentBowlingTeam,
-        striker: currentStriker,
-        nonStriker: currentNonStriker,
-        bowler: currentBowlerName,
-        runsOffBat: 0, // Byes/LegByes are not off the bat
-        isWide: false,
-        isNoBall: false,
-        extrasRuns: runsScored, // Runs scored as B/LB are the 'extras' for this type
-        extrasType: (type === 'byes' ? 'Bye' : 'LegBye'),
-        isWicket: false,
-        wicketType: null,
-        playerDismissed: null,
-        outcomeSymbol: outcomeSymbol // Store the display symbol like B4, LB1
-    };
+   // --- Gather data from global state ---
+   const currentMatchId = matchId;
+   const currentOver = over_no;
+   const currentBall = ball_no;
+   const currentStriker = strikerName || "Unknown Striker";
+   const currentNonStriker = nonStrikerName || "Unknown NonStriker";
+   const currentBowlerName = currentBowler || "Unknown Bowler";
+   const currentBattingTeam = battingTeam || "Unknown Batting";
+   const currentBowlingTeam = bowlingTeam || "Unknown Bowling";
+   const currentInningsSerial = inningsDeliveryCounter;
 
-    // --- Save to Firebase ---
-    const deliveryRef = db.ref(`/matchDeliveries/${currentMatchId}`);
-    deliveryRef.push(deliveryData) // Use push for unique ID
-        .then(() => {
-            console.log(`Firebase: Extras Delivery logged (${currentOver}.${currentBall})`);
-        })
-        .catch((error) => {
-            console.error(`Firebase: Error logging extras delivery (${currentOver}.${currentBall}):`, error);
-        });
+   const extrasType = 'Bye'; // Defaulting type to 'Bye'
+   // <<< --- FIX IS HERE --- <<<
+   const outcomeSymbol = `B${runsScored}`; // Construct symbol directly using 'B'
+   // <<< --- END OF FIX --- <<<
 
-    // No key needed to return as wickets aren't involved here.
-}
+   let deliveryData = {
+       matchId: currentMatchId,
+       deliveryInningsSerial: currentInningsSerial,
+       date: $("#matchDate").val() || new Date().toISOString().split('T')[0],
+       timestamp: firebase.database.ServerValue.TIMESTAMP,
+       localTimestamp: new Date().toISOString(),
+       over: currentOver,
+       ball: currentBall,
+       battingTeam: currentBattingTeam,
+       bowlingTeam: currentBowlingTeam,
+       striker: currentStriker,
+       nonStriker: currentNonStriker,
+       bowler: currentBowlerName,
+       runsOffBat: 0,
+       isWide: false,
+       isNoBall: false,
+       extrasRuns: runsScored,
+       extrasType: extrasType, // Logging as 'Bye'
+       isWicket: false,
+       wicketType: "",
+       playerDismissed: "",
+       outcomeSymbol: outcomeSymbol
+   };
 
+   // --- Save to Firebase (Optional for now, based on your comment) ---
+   console.log(`Firebase <= Extras (${currentOver}.${currentBall}):`, JSON.stringify(deliveryData));
+
+   // --- Temporarily comment out Firebase interaction if requested ---
+   
+   const deliveryRef = db.ref(`/matchDeliveries/${currentMatchId}`);
+   deliveryRef.push(deliveryData)
+       .then(() => {
+           console.log(`Firebase: Extras Delivery logged (${currentOver}.${currentBall})`);
+       })
+       .catch((error) => {
+           console.error(`Firebase: Error logging extras delivery (${currentOver}.${currentBall}):`, error);
+       });
+   
+  //console.log("[TEMP] Firebase save skipped for Extras Delivery."); // Add this line if skipping save
+
+} // --- End of logExtrasDelivery ---
 
 /**
  * Updates an existing delivery record in Firebase with wicket details.

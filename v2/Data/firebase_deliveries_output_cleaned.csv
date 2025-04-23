@@ -1,0 +1,2 @@
+matchId,date,battingTeam,bowlingTeam,deliveryInningsSerial,over,ball,striker,nonStriker,bowler,runsOffBat,extrasRuns,extrasType,isNoBall,isWide,isWicket,wicketType,playerDismissed
+2025-04-23_sd_v_gv,2025-04-23,gv,sd,1,1,1,b,f,d,1,0,,False,False,False,,
